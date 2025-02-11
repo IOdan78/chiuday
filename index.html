@@ -25,13 +25,65 @@
 <!--[if lt IE 9]><script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.js"></script><![endif]-->
 <!--[if lt IE 9]><script src="js/respond.js"></script><![endif]-->
 <style>
-    .rev-slidebg {
-        margin-top: 100px;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
     }
-</style>
+    #chat-box {
+      width: 400px;
+      height: 500px;
+      border: 1px solid #ccc;
+      background: white;
+      overflow-y: auto;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+    }
+    .message {
+      margin: 5px 0;
+      padding: 8px 12px;
+      border-radius: 15px;
+      max-width: 70%;
+      word-wrap: break-word;
+    }
+    .user {
+      background-color: #dcf8c6;
+      align-self: flex-end;
+      text-align: right;
+      margin-left: auto;
+    }
+    .bot {
+      background-color: #e4e6eb;
+      align-self: flex-start;
+      text-align: left;
+      margin-right: auto;
+    }
+    #input-container {
+      display: flex;
+      gap: 5px;
+    }
+    #message {
+      width: 320px;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
 </head>
 
 <body>
@@ -414,6 +466,14 @@
     <!-- End News Section Two -->
 
     <!-- Chat GPT -->
+     <section> <h2>Chat với Gemini</h2>
+        <div id="chat-box"></div>
+      
+        <div id="input-container">
+          <input type="text" id="message" placeholder="Nhập tin nhắn..." />
+          <button onclick="sendMessage()">Gửi</button>
+        </div>
+      </section>
 <!-- End off chat Gpt -->
 
 </div>  
@@ -422,7 +482,58 @@
 <!--Scroll to top-->
 <div class="scroll-to-top scroll-to-target" data-target="html"><span class="fa fa-angle-double-up"></span></div>
 
+<script>
+    async function sendMessage() {
+      const messageInput = document.getElementById('message');
+      const message = messageInput.value.trim();
+      const chatBox = document.getElementById('chat-box');
 
+      if (message === '') return;  // Không gửi tin nhắn trống
+
+      // Hiển thị tin nhắn của người dùng
+      const userMessage = document.createElement('div');
+      userMessage.className = 'message user';
+      userMessage.textContent = message;
+      chatBox.appendChild(userMessage);
+
+      // Xoá nội dung input sau khi gửi
+      messageInput.value = '';
+
+      // Cuộn xuống cuối chat box
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        const response = await fetch('http://localhost:5000/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message })
+        });
+
+        const data = await response.json();
+
+        // Hiển thị phản hồi của bot
+        const botMessage = document.createElement('div');
+        botMessage.className = 'message bot';
+        botMessage.textContent = data.candidates[0].content.parts[0].text;
+
+        chatBox.appendChild(botMessage);
+        chatBox.scrollTop = chatBox.scrollHeight;  // Cuộn xuống để hiển thị tin nhắn mới
+      } catch (error) {
+        console.error('Lỗi:', error);
+        const errorMessage = document.createElement('div');
+        errorMessage.className = 'message bot';
+        errorMessage.textContent = 'Có lỗi xảy ra. Vui lòng thử lại!';
+        chatBox.appendChild(errorMessage);
+      }
+    }
+
+    // Gửi tin nhắn bằng phím Enter
+    document.getElementById('message').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+  </script>
 <script src="js/jquery.js"></script> 
 <script src="js/bootstrap.min.js"></script>
 <!--Revolution Slider-->
